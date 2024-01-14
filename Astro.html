@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astronomy Picture of the Day</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            overflow: hidden; /* Hide horizontal scroll bar */
+        }
+
+        #titleContainer {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #title {
+            font-size: 24px;
+            color: white; /* Default text color */
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #imageTitle {
+            font-size: 16px;
+            margin-top: 20px;
+            color: white; /* Default text color */
+        }
+
+        #explanationContainer {
+            position: absolute;
+            top: 80%;
+            transform: translateY(-50%);
+            width: 100%;
+            text-align: center;
+            animation: crawl 45s linear infinite; /* Increased speed by 25% */
+            white-space: pre-wrap;
+            color: white; /* Default text color */
+            font-family: 'Arial', sans-serif; /* Font family similar to Star Wars */
+        }
+
+        @keyframes crawl {
+            0% {
+                transform: translateY(100%);
+            }
+            100% {
+                transform: translateY(-100%);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<audio id="imperialMarch" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+
+<div id="titleContainer">
+    <div id="title">Astronomy Picture of the Day</div>
+</div>
+
+<div class="container">
+    <label for="dateDropdown">Select a Date:</label>
+    <select id="dateDropdown">
+        <!-- JavaScript will populate this dropdown with past dates including the current day -->
+    </select>
+
+    <button onclick="submitForm()">Submit</button>
+</div>
+
+<div id="imageTitle">Astronomy Picture of the day by NASA</div>
+
+<div id="explanationContainer">
+    <!-- Explanation text will be added dynamically using JavaScript -->
+</div>
+
+<script>
+    // Function to play the Imperial March theme
+    function playImperialMarch() {
+        var imperialMarchAudio = document.getElementById("imperialMarch");
+        imperialMarchAudio.load(); // Ensure audio is reloaded
+        imperialMarchAudio.play();
+    }
+
+    // Play the Imperial March theme when the page is loaded
+    playImperialMarch();
+
+    // Function to populate the dropdown with past dates
+    function populateDropdown() {
+        var dropdown = document.getElementById("dateDropdown");
+        var currentDate = new Date();
+
+        for (var i = 0; i < 30; i++) { // Now includes at least 30 past days
+            var pastDate = new Date(currentDate);
+            pastDate.setDate(currentDate.getDate() - i);
+            var formattedDate = pastDate.toISOString().split('T')[0];
+            var option = document.createElement("option");
+            option.value = formattedDate;
+            option.text = formattedDate;
+            dropdown.add(option);
+        }
+    }
+
+    // Function to handle form submission
+    function submitForm() {
+        var selectedDate = document.getElementById("dateDropdown").value;
+
+        // Make API request with the selected date or use the current date by default
+        var apiDate = selectedDate || new Date().toISOString().split('T')[0];
+
+        // Make API request with the selected date or current date
+        fetch(`https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date=${apiDate}`)
+            .then(response => response.json())
+            .then(data => {
+                // Play the Imperial March theme
+                playImperialMarch();
+
+                // Check if "hdurl" is available, otherwise use a default image
+                var imageUrl = data.hdurl || "https://apod.nasa.gov/apod/image/2310/IC63_GruntzBax.jpg";
+
+                // Update background image with the hdurl from API response or the default image
+                document.body.style.backgroundImage = `url('${imageUrl}')`;
+
+                // Update the image title with the title from API response or set a default title
+                var imageTitle = data.title || "Astronomy Picture of the day by NASA";
+                document.getElementById("imageTitle").innerText = imageTitle;
+
+                // Update the explanation text with the explanation from API response
+                var explanation = data.explanation || "No explanation available.";
+                document.getElementById("explanationContainer").innerText = explanation;
+
+                // Adjust text color based on background color
+                var textColor = getContrastColor(imageUrl);
+                document.getElementById("explanationContainer").style.color = textColor;
+                document.getElementById("imageTitle").style.color = textColor;
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Function to get contrast color based on background color
+    function getContrastColor(imageUrl) {
+        // You can implement a logic here to analyze the image and determine a suitable contrast color
+        // For simplicity, I'm assuming a white or black background
+        return isLightColor() ? "black" : "white";
+    }
+
+    // Function to check if the background color is light
+    function isLightColor() {
+        // Replace this logic with more advanced color analysis if needed
+        return document.body.style.backgroundColor === "white";
+    }
+
+    // Populate the dropdown on page load
+    populateDropdown();
+
+    // Perform the initial API call and populate the page
+    submitForm();
+</script>
+
+</body>
+</html>
